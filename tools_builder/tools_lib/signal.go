@@ -3,7 +3,7 @@
 package tools_lib
 
 import (
-	"git.pinquest.cn/base/log"
+	"github.com/lwm-galactic/logger"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,7 +17,7 @@ func regExitSignals() {
 
 	go func() {
 		sig := <-sigs
-		log.Infof("got signal %v, exit", sig)
+		logger.Infof("got signal %v, exit", sig)
 		os.Exit(11)
 	}()
 }
