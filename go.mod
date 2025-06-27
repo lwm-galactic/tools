@@ -3,6 +3,7 @@ module github.com/lwm-galactic/tools
 go 1.24.4
 
 require (
+	github.com/google/btree v1.1.3
 	github.com/json-iterator/go v1.1.12
 	github.com/lwm-galactic/logger v1.0.0
 )
