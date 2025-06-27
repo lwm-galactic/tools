@@ -1,55 +1,33 @@
-// B+ 树对"github.com/google/btree" 进行封装
-
 package btree
 
-import (
-	"fmt"
-	"github.com/google/btree"
-	"sync"
-)
+import "github.com/google/btree"
 
-// KeyValue 是一个键值对结构
-type KeyValue[K comparable] struct {
-	Key   K
-	Value interface{}
-}
-
-// LessFunc 是自定义比较函数类型
-type LessFunc[K comparable] func(a, b K) bool
-
-// BTree 是封装后的 B+ 树结构
+// BTree 是一个非线程安全的 B+ 树实现，用于高性能场景
 type BTree[K comparable] struct {
-	tree  *btree.BTree
-	mutex *sync.RWMutex // 读写锁保证map插入线程安全
-	less  LessFunc[K]
+	tree *btree.BTree
+	less LessFunc[K]
 }
 
-// New 创建一个新的 BTree 实例 (泛型函数)
-// 可以传入任意做key 需要传入一个比较传入泛型的比较方法
-func New[K comparable](degree int, less LessFunc[K]) *BTree[K] {
+// NewNoLock 创建一个新的非线程安全的 B+ 树实例
+func NewNoLock[K comparable](degree int, less LessFunc[K]) *BTree[K] {
 	if degree < 2 {
 		panic("degree must >= 2")
 	}
 	return &BTree[K]{
-		tree:  btree.New(degree),
-		mutex: &sync.RWMutex{},
-		less:  less,
+		tree: btree.New(degree),
+		less: less,
 	}
 }
 
-// Insert 插入一个键值对
+// Insert 插入键值对（无锁）
 func (bt *BTree[K]) Insert(key K, value interface{}) {
 	item := &keyValueItem[K]{Key: key, Value: value, less: bt.less}
-	bt.mutex.Lock()
-	defer bt.mutex.Unlock()
 	bt.tree.ReplaceOrInsert(item)
 }
 
-// Get 查找一个键对应的值
+// Get 查找键对应的值（无锁）
 func (bt *BTree[K]) Get(key K) (interface{}, bool) {
 	item := &keyValueItem[K]{Key: key, less: bt.less}
-	bt.mutex.RLock()
-	defer bt.mutex.RUnlock()
 	found := bt.tree.Get(item)
 	if found == nil {
 		return nil, false
@@ -57,30 +35,24 @@ func (bt *BTree[K]) Get(key K) (interface{}, bool) {
 	return found.(*keyValueItem[K]).Value, true
 }
 
-// Delete 删除一个键
+// Delete 删除指定键（无锁）
 func (bt *BTree[K]) Delete(key K) {
 	item := &keyValueItem[K]{Key: key, less: bt.less}
-	bt.mutex.Lock()
-	defer bt.mutex.Unlock()
 	bt.tree.Delete(item)
 }
 
-// Size 返回当前树中的元素数量
+// Size 返回当前树中的元素数量（无锁）
 func (bt *BTree[K]) Size() int {
-	bt.mutex.RLock()
-	defer bt.mutex.RUnlock()
 	return bt.tree.Len()
 }
 
-// IsEmpty 判断是否为空
+// IsEmpty 判断是否为空（无锁）
 func (bt *BTree[K]) IsEmpty() bool {
 	return bt.Size() == 0
 }
 
-// Ascend 按升序遍历所有元素
-func (bt *BTree[K]) Ascend(fn func(key K, value interface{})) {
-	bt.mutex.RLock()
-	defer bt.mutex.RUnlock()
+// Ascend 按升序遍历所有元素（无锁）
+func (bt *BTree[K]) Ascend(fn func(K, interface{})) {
 	bt.tree.Ascend(func(i btree.Item) bool {
 		item := i.(*keyValueItem[K])
 		fn(item.Key, item.Value)
@@ -88,13 +60,10 @@ func (bt *BTree[K]) Ascend(fn func(key K, value interface{})) {
 	})
 }
 
-// AscendRange 遍历指定范围 [start, end]
+// AscendRange 遍历指定范围 [start, end]（无锁）
 func (bt *BTree[K]) AscendRange(start, end K, fn func(K, interface{})) {
 	startItem := &keyValueItem[K]{Key: start, less: bt.less}
 	endItem := &keyValueItem[K]{Key: end, less: bt.less}
-
-	bt.mutex.RLock()
-	defer bt.mutex.RUnlock()
 
 	bt.tree.AscendRange(startItem, endItem, func(i btree.Item) bool {
 		item := i.(*keyValueItem[K])
@@ -103,10 +72,8 @@ func (bt *BTree[K]) AscendRange(start, end K, fn func(K, interface{})) {
 	})
 }
 
-// Descend 按降序遍历所有元素
-func (bt *BTree[K]) Descend(fn func(key K, value interface{})) {
-	bt.mutex.RLock()
-	defer bt.mutex.RUnlock()
+// Descend 按降序遍历所有元素（无锁）
+func (bt *BTree[K]) Descend(fn func(K, interface{})) {
 	bt.tree.Descend(func(i btree.Item) bool {
 		item := i.(*keyValueItem[K])
 		fn(item.Key, item.Value)
@@ -114,30 +81,10 @@ func (bt *BTree[K]) Descend(fn func(key K, value interface{})) {
 	})
 }
 
-// BatchInsert 批量插入键值对
+// BatchInsert 批量插入键值对（无锁）
 func (bt *BTree[K]) BatchInsert(pairs map[K]interface{}) {
-	bt.mutex.Lock()
-	defer bt.mutex.Unlock()
 	for k, v := range pairs {
 		item := &keyValueItem[K]{Key: k, Value: v, less: bt.less}
 		bt.tree.ReplaceOrInsert(item)
 	}
-}
-
-// keyValueItem 是内部使用的 Item 类型
-type keyValueItem[K comparable] struct {
-	Key   K
-	Value interface{}
-	less  LessFunc[K]
-}
-
-// Less 实现 btree.Item 接口
-func (i *keyValueItem[K]) Less(than btree.Item) bool {
-	other := than.(*keyValueItem[K])
-	return i.less(i.Key, other.Key)
-}
-
-// String 返回字符串表示
-func (i *keyValueItem[K]) String() string {
-	return fmt.Sprintf("{Key: %v}", i.Key)
 }
