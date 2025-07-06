@@ -2,7 +2,8 @@ package posixsignal
 
 import (
 	"fmt"
-	"github.com/lwm-galactic/iam/pkg/shutdown"
+	"github.com/lwm-galactic/tools/shutdown"
+
 	"os"
 	"os/signal"
 	"syscall"
