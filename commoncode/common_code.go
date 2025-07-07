@@ -9,6 +9,8 @@ package commoncode
 const (
 	// Success 成功
 	Success int = iota + 100001
+	ErrUnknown
+	ErrValidation
 	// ErrorBind 绑定结构体错误
 	ErrorBind
 	// ErrIllegalPage : 非法的页面
@@ -21,12 +23,18 @@ const (
 const (
 	// ErrTokenExpired : token过期
 	ErrTokenExpired int = iota + 100101
+	ErrRefreshTokenExpired
 	// ErrTokenInvalid : 无效的token
 	ErrTokenInvalid
+	ErrRefreshTokenInvalid
 	// ErrInvalidAuthHeader :无效的 认证头
 	ErrInvalidAuthHeader
+	ErrRefreshInvalidAuthHeader
 	// ErrMissingHeader 缺少请求头
 	ErrMissingHeader
+	ErrSignatureInvalid
+	ErrPasswordIncorrect
+	ErrPermissionDenied
 )
 
 // common: database errors 数据库模块.
@@ -39,6 +47,8 @@ const (
 const (
 	// ErrEncodingFailed : Encoding failed due to an error with the data.
 	ErrEncodingFailed int = iota + 100301
+
+	ErrEncrypt int = iota + 100201
 
 	// ErrDecodingFailed : Decoding failed due to an error with the data.
 	ErrDecodingFailed
