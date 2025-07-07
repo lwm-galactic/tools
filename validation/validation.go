@@ -1,11 +1,13 @@
 package validation
 
 import (
+	"errors"
 	"fmt"
 	english "github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/translations/en"
+	"github.com/lwm-galactic/tools/validation/field"
 	"os"
 	"reflect"
 	// zh_trans "github.com/go-playground/validator/v10/translations/zh"
@@ -131,4 +133,34 @@ func validateName(fl validator.FieldLevel) bool {
 	}
 
 	return true
+}
+
+// Validate validates config for errors and returns an error (it can be casted to
+// ValidationErrors, containing a list of errors inside). When error is printed as string, it will
+// automatically contains the full list of validation errors.
+func (v *Validator) Validate() field.ErrorList {
+	// validate policy
+	err := v.val.Struct(v.data)
+	if err == nil {
+		return nil
+	}
+
+	// this check is only needed when your code could produce
+	// an invalid value for validation such as interface with nil
+	// value most including myself do not usually have code like this.
+	var invalidValidationError *validator.InvalidValidationError
+	if errors.As(err, &invalidValidationError) {
+		return field.ErrorList{field.Invalid(field.NewPath(""), err.Error(), "")}
+	}
+
+	allErrs := field.ErrorList{}
+
+	// collect human-readable errors
+	var vErrors validator.ValidationErrors
+	_ = errors.As(err, &vErrors)
+	for _, vErr := range vErrors {
+		allErrs = append(allErrs, field.Invalid(field.NewPath(vErr.Namespace()), vErr.Translate(v.trans), ""))
+	}
+
+	return allErrs
 }
