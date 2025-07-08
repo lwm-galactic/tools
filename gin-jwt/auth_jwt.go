@@ -729,7 +729,7 @@ func (mw *GinJWTMiddleware) RefreshHandler(c *gin.Context) {
 
 // CheckRefreshTokenExpire 检查 RefreshToken 是否过期
 func (mw *GinJWTMiddleware) CheckRefreshTokenExpire(c *gin.Context) (jwt.MapClaims, error) {
-	token, err := mw.ParseAccessToken(c)
+	token, err := mw.ParseRefreshToken(c)
 
 	if err != nil {
 		return nil, err
