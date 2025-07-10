@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/json-iterator/go"
-	"github.com/json-iterator/go/extra"
 )
 
 // 封装json 序列化和反序列化
@@ -17,7 +16,7 @@ var j = jsoniter.Config{
 }.Froze()
 
 func init() {
-	extra.RegisterFuzzyDecoders()
+	// extra.RegisterFuzzyDecoders()
 }
 
 // Marshal 利用json-iterator进行json编码
