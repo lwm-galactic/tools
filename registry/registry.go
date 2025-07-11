@@ -2,9 +2,10 @@ package registry
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/lwm-galactic/logger"
-	"github.com/lwm-galactic/tools/json"
+
 	"go.etcd.io/etcd/client/v3"
 	"log"
 	"sync"
@@ -34,10 +35,15 @@ type EtcdRegistry struct {
 
 func newEtcdClient(options *Options) (*clientv3.Client, error) {
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"117.72.74.31:2379"},
-		DialTimeout: 5 * time.Second,
-		Username:    options.Username,
-		Password:    options.Password,
+		Endpoints: options.Endpoints,
+
+		TLS:                options.TLS,
+		DialTimeout:        options.DialTimeout,
+		DialKeepAliveTime:  options.DialKeepAliveTime,
+		Username:           options.Username,
+		Password:           options.Password,
+		MaxCallSendMsgSize: options.MaxCallSendMsgSize,
+		MaxCallRecvMsgSize: options.MaxCallRecvMsgSize,
 	})
 	if err != nil {
 		return nil, err

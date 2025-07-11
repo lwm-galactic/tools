@@ -15,6 +15,7 @@ require (
 	github.com/lwm-galactic/logger v1.0.0
 	github.com/moby/term v0.5.2
 	github.com/redis/go-redis/v9 v9.11.0
+	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
 	github.com/tidwall/gjson v1.18.0
 	go.etcd.io/etcd/client/v3 v3.6.2

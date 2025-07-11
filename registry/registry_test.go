@@ -10,7 +10,8 @@ import (
 
 func TestNewEtcdRegistry1(t *testing.T) {
 	etcdRegistry, err := NewEtcdRegistry(
-		WithAuth("root", "0618"),
+		WithUsername("root"),
+		WithPassword("root"),
 	)
 	if err != nil {
 		logger.Errorf("NewEtcdRegistry err: %v", err)
@@ -33,7 +34,8 @@ func TestNewEtcdRegistry1(t *testing.T) {
 
 func TestNewEtcdRegistry2(t *testing.T) {
 	etcdRegistry, err := NewEtcdRegistry(
-		WithAuth("root", "0618"),
+		WithUsername("root"),
+		WithPassword("root"),
 	)
 	if err != nil {
 		logger.Errorf("NewEtcdRegistry err: %v", err)
@@ -54,7 +56,9 @@ func TestNewEtcdRegistry2(t *testing.T) {
 
 func TestEtcd(t *testing.T) {
 	etcdRegistry, err := NewEtcdRegistry(
-		WithAuth("root", "0618"))
+		WithUsername("root"),
+		WithPassword("root"),
+	)
 	if err != nil {
 		logger.Errorf("NewEtcdRegistry err: %v", err)
 		return
