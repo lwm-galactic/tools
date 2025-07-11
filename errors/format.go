@@ -2,8 +2,9 @@ package errors
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"github.com/lwm-galactic/tools/json"
+
 	"strings"
 )
 
